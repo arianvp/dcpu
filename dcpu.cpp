@@ -1,6 +1,21 @@
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+
+    constexpr uint8_t get_opcode(uint16_t instruction) {
+        return instruction & 0xF;
+    };
+    constexpr uint16_t get_operand(uint16_t instruction, char i)
+    {
+        return (instruction >> (4 + 6*i)) & 0x3F;
+    }
+    constexpr uint16_t get_reg(uint16_t operand) {
+        return operand & 7;
+    }
+    constexpr uint8_t advance_pc(uint16_t operand)
+    {
+        return (operand >= 0x10 && operand <= 0x17) || (operand == 0x1E || operand == 0x1F);
+    }
 class DCPU
 {
     enum Opcodes
@@ -28,26 +43,16 @@ class DCPU
         JSR = 0x01
     };
 
+
+    public:
     uint16_t    r[8],
                 pc,
                 sp,
                 o,
                 m[0x10000];
 
-    constexpr uint8_t get_opcode(uint16_t instruction) {
-        return instruction & 0xF;
-    };
-    constexpr uint16_t get_operand(uint16_t instruction, char i)
-    {
-        return (instruction >> (4 + 6*i)) & 0x3F;
-    }
-    constexpr uint16_t get_reg(uint16_t operand) {
-        return operand & 7;
-    }
-    constexpr uint8_t advance_pc(uint16_t operand)
-    {
-        return (operand >= 0x10 && operand <= 0x17) || (operand == 0x1E || operand == 0x1F);
-    }
+    DCPU() :m({0x7c01, 0x0030}) {}
+
 
 
     uint16_t *GetValue(uint16_t operand)
@@ -153,3 +158,10 @@ class DCPU
 
     }
 };
+
+int main()
+{
+    DCPU cpu;
+    cpu.Step();
+    std::cout << cpu.r[0];
+}
